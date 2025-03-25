@@ -1,0 +1,8 @@
+{
+    "auths": {
+      "$DOCKER_SERVER": {
+        "username": "$ENV_DOCKER_USER",
+        "password": "$ENV_DOCKER_PW"
+      }
+    }
+  }

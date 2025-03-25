@@ -1,0 +1,83 @@
+:imagesdir: ./images
+== System Scope and Context
+
+=== Business Context
+
+The Smart Wearables Cloud collects health and activity data from wearable providers on the users behalf. The collected data may then be shared by the user with other participants of the Health-X dataLOFT data space.
+
+// MD syntax for directly editing diagram with GitLab
+// ![](uploads/123000bb1de4a4136a07a6cbf8a21839/swc_business_context.drawio.svg)
+image::business_context.png[]
+
+==== Citizen
+
+The Citizen has a smart wearable along with an associated account from the wearable's vendor. Citizens can enable the SWC to access their wearable data by connecting their smart wearables vendor account in the SWC user interface.
+
+==== Wearable Data Provider
+
+The wearable data provider enables access to the data recorded by smart devices. In most cases, the wearable data provider is a device manufacturer that offers cloud services that support the activity tracking apps used by its customers but also provide an API for third-party apps that can be used to retrieve the recorded data.
+
+However, there may also be vendor-agnostic third-party services that provide access to the health and activity data collected by smart devices. These services may provide access to a range of different devices and providers through a single interface and/or perform additional analysis and calculations on the original data, whose results may then also be accessible through their interface.
+
+Thryve is one such exemplary third-party provider that has been integrated into the SWC together with Garmin.
+
+==== Data Space "Health-x dataLOFT"
+
+The data space gives citizens full control over their data and enables them to manage them themselves. The Health-X dataLOFT platform follows the Gaia-X principles and consists of a number of core components that implement key concepts such as discoverability and trust. 
+
+==== Researcher/Medical Staff
+
+Citizens can share their data with researchers, physicians and other parties from the medical domain which may use these data for their individual use cases and to improve the medical care of the persons sharing their data.
+
+=== Technical Context
+
+// MD syntax for directly editing diagram with GitLab
+// ![context.drawio.svg](uploads/538312ccc283d72e8f1db22615c9e6a4/context.drawio.svg)
+image::context.png[context.drawio.svg]
+
+[%header,cols="1,1"]
+|===
+
+|Partner System
+|Description
+
+
+|Consent Management App (CMA)
+|Wallet App for managing personal credentials and data, consisting of the https://github.com/HEALTH-X-dataLOFT/data-wallet-app[app] itself and an associated https://github.com/HEALTH-X-dataLOFT/dwa-backend[backend]
+
+|Federated Catalogue (FC)
+|Registry of dataspace participants
+
+|Trust Anchor
+|Issues and verifies Credentials of citizen identities
+
+|Thryve
+|Thryve Health API
+
+|Garmin
+|Garmin Connect API
+|===
+
+NOTE: As depicted in the business context diagram, Garmin and Thryve are external systems which are not related directly to the data space in any form.
+As opposed to this, CMA, FC and Trust Anchors are core components of the Health-X dataLOFT data space.
+The sources for these and other dataspace components can be found on the official https://github.com/HEALTH-X-dataLOFT[Health-X dataLOFT GitHub organization].
+
+==== CMA
+
+The Consent Management App represents the central platform for self-sovereign data management. It enables users to manage their credentials as well as preview and share their associated data with other data space participants.
+
+==== Federated Catalogue
+
+The Federated Catalogue keeps a list of all institutional data space participants and allows their discovery within the data space.
+
+==== Trust Anchor
+
+Trust between participants is a core requirement for a data space. Trust Anchors establish this trust within the data space and are used to issue and verify credentials.
+
+==== Garmin
+
+Garmin Connect was integrated as an examplary datasource. For all Smart Wearables accounts that are connected to a Garmin account the Connect API pushes new activity and health data to the SWC as soon as it is available.
+
+==== Thryve
+
+Similar to Garmin, Thryve was integrated prototypically into the SWC to collect wearable data from any vendor supported by Thryve. As opposed to the Garmin integration, the Thryve integration follows a pull-based approach i.e. data is regularly collected and persisted by Thryve from where it is requested by the SWC on-demand.

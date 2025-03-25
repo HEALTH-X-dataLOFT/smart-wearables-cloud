@@ -1,0 +1,8 @@
+/usr/local/tomcat/logs/localhost*.* {
+copytruncate
+daily
+rotate 7
+compress
+missingok
+size 100M
+}

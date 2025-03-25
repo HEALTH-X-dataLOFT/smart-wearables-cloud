@@ -1,0 +1,130 @@
+server:
+  port: 7272
+  servlet.context-path: /data
+
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_IP_PORT_SCHEMA}?useUnicode=true&createDatabaseIfNotExist=true&characterEncoding=UTF-8&characterSetResults=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    max-idle: 5
+    min-idle: 1
+    test-while-idle: true
+    test-on-borrow: true
+    validation-query: SELECT 1
+    time-between-eviction-runs-millis: 5000
+    min-evictable-idle-time-millis: 60000
+    # Prevent failing fast if database is not yet available
+    hikari.initialization-fail-timeout: 0
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    open-in-view: false
+    generate-ddl: true
+    hibernate.ddl-auto: update
+    properties.hibernate.jdbc.time_zone:  UTC
+  security:
+    oauth2:
+      # Keycloak
+      client:
+        registration:
+          keycloak:
+            client-id: ${SWC_KEYCLOAK_CLIENT_ID:swc}
+            client-secret: ${SWC_KEYCLOAK_CLIENT_SECRET}
+            authorization-grant-type: ${SWC_KEYCLOAK_AUTH_GRANT_TYPE:authorization_code}
+            scope: ${SWC_KEYCLOAK_SCOPE:openid}
+        provider:
+          keycloak:
+            issuer-uri: ${SWC_KEYCLOAK_ISSUER_URI:http://localhost:30119/auth/realms/${SWC_KEYCLOAK_REALM:smart-wearables}}
+            user-name-attribute: ${SWC_KEYCLOAK_USER_NAME_ATTRIBUTE:preferred_username}
+      resourceserver:
+        jwt:
+          issuer-uri: ${SWC_JWT_ISSUER_URI:https://smartwearables.health-x.org/auth/realms/${SWC_KEYCLOAK_REALM:smart-wearables}}
+          jwk-set-uri: ${SWC_JWK_SET_URI:https://smartwearables.health-x.org/auth/realms/${SWC_KEYCLOAK_REALM:smart-wearables}/protocol/openid-connect/certs}
+          audiences: healthx-cma
+
+# Trusted Issuers
+auth:
+  jwe:
+    reject-jwt: ${AUTH_JWE_REJECT_JWT:false}
+    private-key-file: ${AUTH_JWE_PRIVATE_KEY_FILENAME:}
+  issuers:
+    - https://smartwearables.health-x.org/auth/realms/smart-wearables
+    - https://federated-catalog-auth.dev-dataloft-ionos.de/realms/cma
+    - https://federated-catalog-auth.staging-dataloft-ionos.de/realms/cma
+    - https://federated-catalog-auth.dataloft-ionos.de/realms/cma
+    - https://federated-catalog-auth.dev-dataloft-ionos.de/realms/gaia-x
+    - https://federated-catalog-auth.staging-dataloft-ionos.de/realms/gaia-x
+    - https://federated-catalog-auth.dataloft-ionos.de/realms/gaia-x
+
+thryve:
+  base-url: ${THRYVE_BASE_URL:https://api.und-gesund.de/v5}
+  username: ${THRYVE_USERNAME}
+  password: ${THRYVE_PASSWORD}
+  app-id: ${THRYVE_APP_ID}
+  app-secret: ${THRYVE_APP_SECRET}
+  auth-redirect-uri: ${THRYVE_AUTH_REDIRECT_URI} # needs also to be configured in PartnerAppManager
+  unavailable-threshold: 28 # days
+
+endpoints:
+  beans.id: springbeans
+  #No auth  protected
+  shutdown.sensitive: false
+  #Enable shutdown endpoint
+  shutdown.enabled: true
+
+logging:
+  file:
+    path: ../logs
+    name: ../logs/data.log
+  level:
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO
+    org.hibernate.type: INFO
+    root: DEBUG
+    org.springframework: INFO
+    org.springframework.web: INFO
+    org.hibernate: INFO
+    org.springframework.web.filter.CommonsRequestLoggingFilter: INFO
+    org.springframework.security: INFO
+    tomcat: INFO
+    sun.rmi: INFO
+  group.tomcat: org.apache.catalina, org.apache.coyote, org.apache.tomcat
+
+# ===============================================
+# SMART WEARABLE CLOUD CONFIGURATION PROPERTIES
+# ===============================================
+swc:
+  authRedirectBaseUrl: ${SWC_BASE_URL}/data/1234567890
+  keycloak-realm: ${SWC_KEYCLOAK_REALM:smart-wearables}
+  vendors:
+    garmin:
+      oauth1:
+        requestTokenUrl: https://connectapi.garmin.com/oauth-service/oauth/request_token
+        authorizationCallbackUrl: https://connect.garmin.com/oauthConfirm
+        successfulAuthorizationRedirectCallbackUrl: ${SWC_PUBLIC_URL}/data/external-vendors/garmin/authorization-granted?redirect_to=${GARMIN_OAUTH_SUCCESS_REDIRECT_URL}
+        accessTokenUrl: https://connectapi.garmin.com/oauth-service/oauth/access_token
+        deregistrationUrl: https://apis.garmin.com/wellness-api/rest/user/registration
+        consumerKey: ${GARMIN_CONSUMER_KEY}
+        consumerSecret: ${GARMIN_CONSUMER_SECRET}
+  encryption.aes.key: ${AES_ENCRYPTION_KEY}
+
+keycloak-client:
+  baseUrl: ${SWC_BASE_URL}/auth
+  realm: ${KEYCLOAK_REALM:master}
+  clientId: ${KEYCLOAK_ADMIN_CLIENT_ID:admin-cli}
+  userName: ${KEYCLOAK_ADMIN_USER:admin}
+  password: ${KEYCLOAK_ADMIN_PASSWORD:admin}
+
+grpc:
+  server:
+    port: ${CONNECTOR_RUN-DSP_SERVER_PORT:8980}
+
+build.version: @project.version@
+
+datatransfer.url.template: ${DATA_TRANSFER_URL_TEMPLATE}
+edc.api.key: ${EDC_API_KEY}
+connector.assetgeneration.endpoint.url: ${ASSET_GENERATION_URL}
+
+vc.signing.filename.publickey: ${VC_SIGNING_PUBLIC_KEY_FILENAME:}
+vc.signing.filenname.privatekey: ${VC_SIGNING_PRIVATE_KEY_FILENAME:}

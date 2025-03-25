@@ -1,0 +1,35 @@
+resources:
+  - ../prod
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /data/swc_base_url
+        value: "http://localhost:3333"
+      - op: replace
+        path: /data/swc_public_url
+        value: "http://localhost:3333"
+      - op: replace
+        path: /data/swc_home_url
+        value: "http://localhost:3333/data"
+    target:
+      kind: ConfigMap
+      namespace: smartwearables
+      name: app-configmap
+  - patch: |-
+      - op: replace
+        path: /spec/rules/0/matches
+        value:
+          - path:
+              type: PathPrefix
+              value: /data/health-x
+          - path:
+              type: PathPrefix
+              value: /data/garmin-api
+          - path:
+              type: PathPrefix
+              value: /data/external-vendors/garmin/authorization-granted/
+    target:
+      kind: HTTPRoute
+      name: data-route-https
+      namespace: smartwearables

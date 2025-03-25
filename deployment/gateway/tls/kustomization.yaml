@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - https://github.com/cert-manager/cert-manager/releases/download/v1.13.3/cert-manager.yaml
+  - issuer.yaml
+
+# Enable experimental Gateway API support feature for automated TLS certificate retrieval/configuration using cert-manager
+patches:
+  - patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --feature-gates=ExperimentalGatewayAPISupport=true
+    target:
+      kind: Deployment
+      labelSelector: app=cert-manager,app.kubernetes.io/component=controller

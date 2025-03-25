@@ -1,0 +1,8 @@
+/usr/local/tomcat/logs/host-manager*.* {
+copytruncate
+daily
+rotate 2
+compress
+missingok
+size 20M
+}

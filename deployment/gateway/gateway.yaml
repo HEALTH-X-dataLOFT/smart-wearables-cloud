@@ -1,0 +1,26 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: swc-gateway
+  namespace: smartwearables
+  labels:
+    app.kubernetes.io/name: swc-gateway
+    app.kubernetes.io/instance: swc-gateway
+    app.kubernetes.io/version: "1.0.0"
+  annotations:
+    cert-manager.io/issuer: letsencrypt
+spec:
+  gatewayClassName: nginx
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+    - name: https
+      port: 443
+      protocol: HTTPS
+      hostname: smartwearables.health-x.org
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: smartwearables-tls

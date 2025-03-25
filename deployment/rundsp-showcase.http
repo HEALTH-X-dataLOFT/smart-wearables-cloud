@@ -1,0 +1,11 @@
+### Dataspace version
+GET https://smartwearables.health-x.org/.well-known/dspace-version
+Content-Type: application/json
+
+### GetCatalog
+POST https://smartwearables.health-x.org/run-dsp/v2024-1/catalog/request
+Content-Type: application/json
+
+{"@context":  "https://w3id.org/dspace/2024/1/context.json","@type": "dspace:CatalogRequestMessage"}
+
+###

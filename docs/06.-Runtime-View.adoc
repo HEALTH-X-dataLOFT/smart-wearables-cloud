@@ -1,0 +1,27 @@
+:imagesdir: ./images
+== Runtime View
+In order to share data with other data space participants it must be possible to discover and explore those data beforehand. The key component enabling SWC users to do so is the CMA.
+
+The following diagrams depict exemplary how the interaction between CMA and SWC works to enable asset discovery and retrieval within the CMA.
+
+////
+=== Issuance of SWC Credentials
+
+image::SWC_Credential_Issuance.svg[SWC_Credential_Issuance.svg]
+
+link:uploads/597dee2b2f6878ca041b766482ddd79b/SWC_CMA_VC_Ausstellung.puml[SWC_CMA_VC_Ausstellung.puml]
+////
+
+=== Asset Discovery
+
+image::asset_discovery.svg[asset_discovery_cma_swc.drawio.png, pdfwidth=85%]
+
+// link:uploads/2317eca972a740663d45c35418733375/SWC_CMA_Asset_Discovery.puml[SWC_CMA_Asset_Discovery.puml]
+
+=== Asset Retrieval by CMA
+
+image::asset_retrieval.svg[asset_retrieval_cma_swc.drawio.png, pdfwidth=85%]
+
+// link:uploads/630cc64e4121ab3e5a162f03b1c1c09f/SWC_CMA_Asset_Retrieval.puml[SWC_CMA_Asset_Retrieval.puml]
+
+

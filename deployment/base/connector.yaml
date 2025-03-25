@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: smart-wearables
+    component: connector
+  name: smart-wearables-connector-deployment
+  namespace: smartwearables
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smart-wearables
+      component: connector
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: smart-wearables
+        component: connector
+    spec:
+      containers:
+        - env:
+            - name: DEBUG
+              value: "true"
+            - name: LOGLEVEL
+              value: "info"
+            - name: SERVER.DSP.ADDRESS
+              value: "0.0.0.0"
+            - name: SERVER.DSP.PORT
+              value: "8080"
+            - name: SERVER.DSP.EXTERNALURL
+              value: "https://smartwearables.health-x.org/data/health-x/asset_data"
+            - name: SERVER.PROVIDER.ADDRESS
+              value: "swc-data-service:8980"
+            - name: SERVER.PROVIDER.INSECURE
+              value: "true"
+            - name: SERVER.PROVIDER.CACERT
+              value: ""
+            - name: SERVER.PROVIDER.CLIENTCERT
+              value: ""
+            - name: SERVER.PROVIDER.CLIENTCERTKEY
+              value: ""
+            - name: SERVER.CONTROL.ENABLED
+              value: "true"
+            - name: SERVER.CONTROL.ADDRESS
+              value: "127.0.0.1"
+            - name: SERVER.CONTROL.PORT
+              value: "8081"
+            - name: SERVER.CONTROL.INSECURE
+              value: "true"
+            - name: SERVER.CONTROL.CERT
+              value: ""
+            - name: SERVER.CONTROL.CERTKEY
+              value: ""
+            - name: SERVER.CONTROL.VERIFYCLIENTCERTS
+              value: "false"
+            - name: SERVER.CONTROL.CLIENTCACERT
+              value: "/etc/hosts"
+            - name: SERVER.CONTRACTSERVICE.ADDRESS
+              value: "swc-data-service:8980"
+            - name: SERVER.CONTRACTSERVICE.INSECURE
+              value: "true"
+            - name: SERVER.CONTRACTSERVICE.CACERT
+              value: ""
+            - name: SERVER.CONTRACTSERVICE.CLIENTCERT
+              value: ""
+            - name: SERVER.CONTRACTSERVICE.CLIENTCERTKEY
+              value: ""
+            - name: SERVER.PERSISTENCE.BACKEND
+              value: "badger"
+            - name: SERVER.PERSISTENCE.BADGER.MEMORY
+              value: "true"
+            - name: SERVER.CONTROL.BADGER.DBPATH
+              value: "/var/rundsp/data"
+          image: ghcr.io/go-dataspace/run-dsp:v0.0.4
+          imagePullPolicy: Always
+          name: rundsp-connector
+          args:
+            - server
+            - -d
+            - -l
+            - debug
+          ports:
+            - containerPort: 8080
+              name: swc-rundsp-port
+              protocol: TCP
+            - containerPort: 8081
+              name: swc-ctrl-port
+              protocol: TCP
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: swc-connector-service
+  namespace: smartwearables
+  labels:
+    app: smart-wearables
+    component: connector
+spec:
+  ports:
+    - port: 80
+      name: swc-rundsp-svc-port
+      targetPort: swc-rundsp-port
+      protocol: TCP
+    - port: 8081
+      name: swc-rundsp-ctrl-port
+      targetPort: swc-ctrl-port
+      protocol: TCP
+  selector:
+    app: smart-wearables
+    component: connector

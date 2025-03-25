@@ -1,0 +1,44 @@
+:imagesdir: ./images
+== System Overview
+The following diagram and table depict the core components that make up the SWC.
+
+////
+Markdown diagram import for direct diagram editing in GitLab
+![building_blocks_level_1.drawio.svg](uploads/1159c848a052cdcef33f3697824205cc/building_blocks_level_1.drawio.svg)
+////
+
+image::system_overview.drawio.png[system_overview.drawio.png]
+
+////
+Markdown table
+| Component | Description |
+|-----------|-------------|
+| Backend | The Smart Wearables Cloud (SWC) Java backend application. |
+| Frontend | The Smart Wearables Cloud (SWC) Vue.js frontend. |
+| Keycloak | Authorization server used for authentication and authorization. |
+| MySQL DB | MySQL database as persistent data store. |
+| RUN-DSP Connector | A RUN-DSP dataspace connector used for data space communication. The application uses gRPC bindings for interacting with the connector. |
+////
+
+[%header,cols="1,1"]
+|===
+
+|Component
+|Description
+
+|Backend
+|The Smart Wearables Cloud (SWC) Java/Spring Boot backend application which holds the business logic.
+
+| Frontend
+| The Smart Wearables Cloud (SWC) Vue.js frontend which provides a basic user interface.
+
+|Keycloak 
+|Authorization server used for authentication and authorization of SWC users.
+
+|MySQL DB 
+|MySQL database as persistent data store.
+
+|RUN-DSP Connector 
+|A RUN-DSP dataspace connector instance implementing the International Data Space Protocol (IDS) for data space communication. The application uses gRPC bindings for interacting with the connector.
+
+|===

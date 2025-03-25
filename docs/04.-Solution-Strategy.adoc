@@ -1,0 +1,42 @@
+[[section-solution-strategy]]
+:imagesdir: ./images
+== Solution Strategy
+
+=== Tech Stack
+The application backend is implemented with Java 17 and Spring Boot, while the frontend is based on Vue.js. In parts, the backend uses code of a former version of Medisana's VitaDock application, that was kindly contributed by Medisana within the project.
+
+With its established ecosystem of libraries and documentation, Spring Boot offers solutions for a variety of technical problems, allowing the focus of development to be placed on the actual business logic. 
+
+Vue.js is used for the implemention of the user interface since it is simple and lightweight and allows the required frontend functionalities to be implemented quickly.
+
+=== User Interaction
+The application's main focus is on the integration of wearable data into the Health-X data space. Although this requires users to create a Smart Wearables Cloud account not many functions are needed to control the data flow.
+
+Basically, the user interface focuses on three main functionalities:
+
+1. viewing and exploring wearable account data
+2. connecting and disconnecting wearable accounts
+3. deleting personal data/accounts
+
+The user interface is therefore very limited and implemented in a rather simple way so that it only offers very basic functions.
+
+=== Wearable Integration
+The system integrates two sources of wearable data: Garmin and Thryve. 
+
+==== Garmin
+To gather data from Garmin, the system uses the push functionality offered by the Garmin Connect API, which automatically forwards data to the SWC backend as soon as it is available. This has the advantage that no regular requests are necessary.
+
+==== Thryve
+While Garmin itself is a vendor of smart devices, Thryve is a third-party service that allows data to be collected from a variety of different wearable data sources, including Garmin.
+However, due to time constraints, the Thryve integation could not be fully completed, so that it only supports connecting a single wearable account, while multiple accounts would theoretically be possible. 
+Moreover, a sophisticated integration was not possible due to time constraints so that the integration represents a proof of concept in the first place.
+
+As Thryve regularly collects data from connected wearable accounts, which are then stored in their data warehouse, the Smart Wearable Cloud does not hold these data itself, but requests those from the Thryve API when needed.
+
+=== Data Space Connectivity
+Communication with a data space requires the use of a data space connector. The system uses the RUN-DSP connector available at https://github.com/go-dataspace/run-dsp and integrates it via the associated gRPC bindings (https://github.com/go-dataspace/run-dsrpc).
+
+=== Core Data Model
+For storing Garmin data the system uses a data model which is basically based on the shape of the data received from Garmin. However, the model was built with extensibility in mind and therefore provides generic approaches as can be seen in the following diagram:
+
+image::data_model.drawio.png[data_model.png]

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-configmap
+  namespace: smartwearables
+data:
+  swc_base_url: "https://smartwearables.health-x.org"
+  swc_public_url: "https://smartwearables.health-x.org"
+  swc_home_url: "https://smartwearables.health-x.org/data"

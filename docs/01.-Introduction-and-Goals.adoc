@@ -1,0 +1,11 @@
+:imagesdir: ./images
+////
+![smart_wearables_cloud_logo_3000px](uploads/c359d3bb746801408f633fbb29db82e1/smart_wearables_cloud_logo_3000px.png){width=294 height=208}
+////
+
+image::smart_wearables_cloud_logo_3000px.png[smart_wearables_cloud_logo_3000px,width=294,height=208]
+
+
+The Smart Wearables Cloud (SWC) enables users to connect their wearable accounts and publish the associated data to the Health-X dataLOFT data space, where it can be shared with other data space participants.
+
+Being an example data provider service, the SWC prototypically implements the use case of integrating activity and health data of the secondary healthcare market into the data space and making it available to other Health-X dataLOFT participants. It thus bridges the gap between device manufacturers and the Health-X dataLOFT platform.

@@ -1,0 +1,59 @@
+[[section-design-decisions]]
+:imagesdir: ./images
+== Architecture Decisions and Technical Debts
+This chapter highlights some technical decisions made throughout the development of the application as well as some technical debts incurred along the way.
+
+=== Integration of Garmin Connect's Push API
+
+==== Context
+The Smart Wearables Cloud needed to integrate a source of health and activity data that were recorded using smart devices.
+Garmin is a popular manufacturer of smart devices and provides several ways to query data from its servers from which one had to be chosen.
+
+==== Alternatives
+Data can either be requested in a traditional pull-based approach or be fetched based on ping or push notifications which trigger pre-configured webhooks of the integrating application.
+
+==== Decision
+Since the push-based approach allows to retrieve data as soon as it is uploaded from the recording devices, without having to regularly pull the Garmin-API and keep track of the data that already was imported, it was decided to use the Garmin Push Notification API. 
+The logic to decide which data has already been imported is hereby managed by Garmin and reduces the complexity on the side of the SWC.
+
+=== Storage of Thryve Data
+
+==== Context
+Data collected by Thryve may be either fetched on demand from the Thryve API or be imported into the SWC database.
+
+==== Decision
+Since there were no strong requirements for storing the data separately within the scope of the project the data is fetched from Thryve on demand. 
+
+==== Consequences
+Deleting user data via the Thryve API takes place asynchronously, i.e. a deletion request is queued that is being processed at a later point in time rather than immediately. Therefore, when a user deletes their data it can't be determined when the removal is actually executed.
+
+<<<
+=== Data Space Connector
+
+==== Context
+There are several data space connectors available within the Gaia-X ecosystem. In particular, two connectors were available within the scope of Health-X dataLOFT, which could be chosen between. Initially, the extended Eclipse Data Space Connector was used, but later the RUN-DSP connector, which was developed from scratch as part of the project, became the increasingly adopted solution.
+
+==== Decision
+The decision was made to use the RUN-DSP connector as it turned out to be the increasingly used alternative and provided some performance improvements compared to the EDC.
+
+
+=== Use Kustomize for Deployments
+
+==== Context
+The deployment configurations for the Kubernetes resources were realized using ordinary resource configuration files and additional Kustomize configurations.
+In the initial phase of the project, Kustomize helped to manage the complexity associated with the different deployments.
+However, as the deployment configuration kept growing, customization with Kustomize became more and more cumbersome and led to considerations about using Helm instead.
+
+==== Decision
+Due to time and resource constraints, the switch from Kustomize to Helm was not made for which reason Kustomize continues to be used for managing the different deployment setups.
+
+=== Secret Management
+
+==== Context
+The application requires secrets to be created before running it. Initially these were created manually, with the intention in mind, to add a proper secret management at a later stage.
+
+==== Decision
+It was decided not to use sealed secrets to prevent any secrets (even if they are encrypted) from being stored in the publicly available repository.
+Moreover, the integration of a standalone secret management solution did not seem to offer an appropriate cost-benefit ratio since there were other challenges with greater importance to the project objectives along the way to be resolved.
+Finally, it was decided to use a GitLab build pipeline along with secret build variables to automatically create resource configuration files for the secrets that can be used for setting up the cluster.
+The build associated artifacts where configured to be short-lived so that they will automatically be deleted after a few minutes. Though not the most obvious approach, this offered a good trade-off between resource investments and usability.

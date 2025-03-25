@@ -1,0 +1,18 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: login-route-http
+  namespace: smartwearables
+spec:
+  parentRefs:
+    - name: swc-gateway
+      sectionName: http
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: swc-login-service
+          port: 80
+          weight: 100

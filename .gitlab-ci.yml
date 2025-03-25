@@ -1,0 +1,147 @@
+# A pipeline is composed of independent jobs that run scripts, grouped into stages.
+# Stages run in sequential order, but jobs within stages run in parallel.
+
+# The following rules avoid duplicated pipeline runs for merge request and branch pipelines
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" # no pipeline run is triggered by update of a merge request
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+# List of stages for jobs, and their order of execution
+stages:
+  - Build base secret
+  - Build tls secret
+  - Build
+  - Create Docker Images
+
+# Build k8s manifest file for secrets of applications running in k8s
+build-secret-manifest_base:
+  stage: Build base secret
+  image: alpine
+  before_script:
+    - apk update && apk add gettext # Make envsubst available in alpine
+
+    # Docker Registry Credentials must not to be encoded when written into docker-config file
+    # They are only expected to be base64 encoded when defined as project variable level to allow for variable masking
+    - export ENV_DOCKER_USER=$(echo $DOCKER_USER_BASE64 | base64 -d)
+    - export ENV_DOCKER_PW=$(echo $DOCKER_PW_BASE64 | base64 -d)
+
+  script:
+    # create manifest files for secrets from template file
+    # secrets must be available as CICD-Project-Variables
+    - cd deployment/
+
+    # create base64-encoded docker-config-json to be injected in secret manifest file through variable Docker_Config
+    - envsubst < base/docker_conf_template.json > docker_config.json
+    - export Docker_Config=$(cat docker_config.json | base64 -w 0)
+
+    # replace all variables in secretes template file
+    - envsubst < base/secrets_base_templ.yaml > base_secrets.yaml
+  artifacts:
+    untracked: false
+    when: on_success
+    access: none # will be made available as artifact in later job
+    name: "base_secrets_artifact"
+    paths:
+      - "deployment/base_secrets.yaml"
+
+# Expand k8s secret manifest file for tls secret for gateway deployment - if tls secret is provided in CICD variables
+build-secret-manifest_tls:
+  stage: Build tls secret
+  dependencies:
+    - build-secret-manifest_base # fetch artifact only from job build-secret-manifest_base
+  rules:
+    - if: $TLS_CERT_BASE64 == null || $TLS_PRIVKEY_BASE64 == null # don't run if either variable does not exist
+      when: never
+    - if: $TLS_CERT_BASE64 == "" || $TLS_PRIVKEY_BASE64 == "" # don't run job if either variable exists but is empty
+      when: never
+    - when: always
+  image: alpine
+  before_script:
+    - apk update && apk add gettext # Make envsubst available in alpine
+  script:
+    - cd deployment/
+    - envsubst < gateway/secret_tls_templ.yaml >> tls_secrets.yaml
+  artifacts:
+    untracked: false
+    when: on_success
+    access: none # will be made available as artifact in later job
+    name: "tls_secrets_artifact"
+    paths:
+      - "deployment/tls_secrets.yaml"
+
+# Build the data application
+build-data-job:
+  stage: Build
+  image: maven:3.9.5-eclipse-temurin-17
+  artifacts:
+    untracked: false
+    when: on_success
+    expire_in: 1 days
+    paths:
+      - ./data-boot/target/data-boot-0.0.1.war
+    reports:
+      junit:
+        - data-boot/target/surefire-reports/TEST-*.xml
+  script:
+    - cd ./data-boot
+    - chmod +x ./mvnw
+    - ./mvnw -DGARMIN_CONSUMER_KEY=_ -DGARMIN_CONSUMER_SECRET=_ -DGARMIN_OAUTH_SUCCESS_REDIRECT_URL=_ -DDB_USERNAME=_ -DDB_PASSWORD=_ -DDB_IP_PORT_SCHEMA=_ -DDATA_TRANSFER_URL_TEMPLATE=_ -DEDC_API_KEY=_ -DASSET_GENERATION_URL=_ verify
+
+deliver_secrets_yaml:
+  #This job makes secrets.yaml available as artifact for user
+  stage: Build
+  image: alpine
+  script:
+    - cd deployment
+    - cat base_secrets.yaml >> secrets.yaml
+    # only if job build-secret-manifest_tls was run and file tls_secrets.yaml is present then attach it to end of secrets.yaml
+    - if [ -f tls_secrets.yaml ];
+       then
+        echo -e '\n---\n' >> secrets.yaml;
+        cat tls_secrets.yaml >> secrets.yaml;
+       fi
+  artifacts:
+    untracked: false
+    when: on_success
+    expire_in: 20 mins
+    name: "secrets_manifest" # only the artifact of that name from the job that ran last will be downloaded
+    paths:
+      - "deployment/secrets.yaml"
+
+show-conditions:
+  stage: .pre
+  cache: []
+  script:
+    - echo "Branch = $CI_COMMIT_BRANCH"
+    - echo "MR source = $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
+    - echo "MR target = $CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - echo "Source = $CI_PIPELINE_SOURCE"
+    - echo "Merge request is open = $CI_OPEN_MERGE_REQUESTS"
+    - echo "Merge request = $CI_MERGE_REQUEST_ID"
+
+# Create a Docker image for the data application and push it to the IONOS container registry
+create-data-image-job:
+  stage: Create Docker Images
+  rules:
+    - if: $CI_COMMIT_TITLE =~ /#deploy/
+      when: manual
+    - if: $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main"
+  image:
+    name: gcr.io/kaniko-project/executor:v1.14.0-debug
+    entrypoint: [""]
+  before_script: # Create config file holding registry login credentials to be picked up by Kaniko
+    - echo "{\"auths\":{\"${IONOS_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${IONOS_REGISTRY_USER}" "${IONOS_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+  dependencies: 
+    - build-data-job
+  script:
+    - cd ./data-boot/deployment
+    - cp ../target/data-boot-0.0.1.war data.war
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}/data-boot/deployment"
+      --dockerfile "${CI_PROJECT_DIR}/data-boot/deployment/Dockerfile"
+      --destination "${IONOS_REGISTRY}/smartwearables/smartwearables-data-image:latest"
+      --cleanup

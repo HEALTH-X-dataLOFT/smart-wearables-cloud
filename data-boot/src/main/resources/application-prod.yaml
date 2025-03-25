@@ -1,0 +1,21 @@
+server:
+  forward-headers-strategy: FRAMEWORK
+  tomcat:
+    redirect-context-root: false
+    remoteip:
+      internal-proxies: .*
+      remote-ip-header: X-Forwarded-For
+      protocol-header: X-Forwarded-Proto
+
+# Trusted Issuers
+auth:
+  jwe:
+    reject-jwt: ${AUTH_JWE_REJECT_JWT:true}
+  issuers:
+    - https://smartwearables.health-x.org/auth/realms/smart-wearables
+    - https://federated-catalog-auth.dev-dataloft-ionos.de/realms/cma
+    - https://federated-catalog-auth.staging-dataloft-ionos.de/realms/cma
+    - https://federated-catalog-auth.dataloft-ionos.de/realms/cma
+    - https://federated-catalog-auth.dev-dataloft-ionos.de/realms/gaia-x
+    - https://federated-catalog-auth.staging-dataloft-ionos.de/realms/gaia-x
+    - https://federated-catalog-auth.dataloft-ionos.de/realms/gaia-x

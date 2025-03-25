@@ -1,0 +1,128 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  labels:
+    app: smart-wearables
+    component: mysql-db
+  name: smart-wearables-mysql-deployment
+  namespace: smartwearables
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: smart-wearables
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: smart-wearables
+        component: mysql-db
+    spec:
+      containers:
+        - env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: mysql-password
+          image: mysql
+          imagePullPolicy: Always
+          name: mysql
+          ports:
+            - containerPort: 3306
+              protocol: TCP
+              name: mysql-port
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-persistent-storage
+            - mountPath: /docker-entrypoint-initdb.d
+              name: init-db-vol
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+        - name: init-db-vol
+          configMap:
+            name: initdb-configmap
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+  namespace: smartwearables
+  labels:
+    app: smart-wearables
+    component: mysql-db
+spec:
+  ports:
+    - port: 30006
+      name: mysql-svc-port
+      targetPort: mysql-port
+      protocol: TCP
+  type: ClusterIP
+  selector:
+    app: smart-wearables
+    component: mysql-db
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  labels:
+    app: smart-wearables
+    component: mysql-db
+  namespace: smartwearables
+spec:
+  storageClassName: local-path
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+data:
+  initdb.sql: |
+    create database if not exists `data`;
+kind: ConfigMap
+metadata:
+  name: initdb-configmap
+  namespace: smartwearables
+  labels:
+    app: smart-wearables
+    component: mysql-db
+
+---
+
+apiVersion: v1
+data:
+  data_db_url: "mysql-service:30006/data"
+kind: ConfigMap
+metadata:
+  name: db-configmap
+  namespace: smartwearables
+  labels:
+    app: smart-wearables
+    component: mysql-db

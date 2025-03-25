@@ -1,0 +1,9 @@
+resources:
+  - config.yaml
+  - mysql_db.yaml
+  - data_app.yaml
+  - data_https_route.yaml
+  - keycloak.yaml
+  - connector.yaml
+  - connector_https_route.yaml
+  - keycloak_https_route.yaml

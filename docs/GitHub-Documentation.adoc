@@ -1,0 +1,22 @@
+= Smart Wearables Cloud
+:hardbreaks-option:
+:toc:
+:imagesdir: ./images
+
+<<<
+include::01.-Introduction-and-Goals.adoc[]
+
+<<<
+include::03.-System-Scope-and-Context.adoc[]
+
+<<<
+include::04.-Solution-Strategy.adoc[]
+
+<<<
+include::05.-Building-Block-View.adoc[]
+
+<<<
+include::06.-Runtime-View.adoc[]
+
+<<<
+include::09.-Architecture-Decisions.adoc[]

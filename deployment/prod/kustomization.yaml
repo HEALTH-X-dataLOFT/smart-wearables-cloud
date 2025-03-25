@@ -1,0 +1,77 @@
+resources:
+  - ../base
+images:
+  - name: smartwearables-data-image:latest
+    newName: smartwearables.cr.de-fra.ionos.com/smartwearables/smartwearables-data-image
+  - name: smartwearables-login-image:latest
+    newName: smartwearables.cr.de-fra.ionos.com/smartwearables/smartwearables-login-image
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec
+        value:
+          storageClassName: ionos-enterprise-hdd
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 2Gi
+    target:
+      kind: PersistentVolumeClaim
+      name: mysql-pvc
+      namespace: smartwearables
+  - patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/0
+        value:
+          name: SPRING_PROFILES_ACTIVE
+          value: prod
+    target:
+      kind: Deployment
+      namespace: smartwearables
+      labelSelector: app=smart-wearables,component=data
+  - patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/0
+        value:
+          name: SWC_KEYCLOAK_ISSUER_URI
+          value: https://smartwearables.health-x.org/auth/realms/smart-wearables
+    target:
+      kind: Deployment
+      namespace: smartwearables
+      labelSelector: app=smart-wearables,component=data
+  - patch: |- 
+      - op: add
+        path: /spec/template/spec/containers/0/env/0
+        value:
+          name: SWC_JWT_ISSUER_URI
+          value: https://smartwearables.health-x.org/auth/realms/smart-wearables
+    target:
+      kind: Deployment
+      namespace: smartwearables
+      labelSelector: app=smart-wearables,component=data
+  - patch: |- 
+      - op: add
+        path: /spec/template/spec/containers/0/env/0
+        value:
+          name: KC_HOSTNAME
+          value: https://smartwearables.health-x.org/auth
+    target:
+      kind: Deployment
+      namespace: smartwearables
+      labelSelector: app=smart-wearables,component=keycloak
+  - patch: |-
+      - op: replace
+        path: /spec
+        value:
+          storageClassName: ionos-enterprise-hdd
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+    target:
+      kind: PersistentVolumeClaim
+      name: connector-app-vol
+      namespace: smartwearables

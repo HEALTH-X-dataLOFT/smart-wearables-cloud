@@ -1,0 +1,44 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base
+  - data_http_route.yaml
+  - login_http_route.yaml
+  - keycloak/keycloak_realm_configmap.yaml
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /data/swc_base_url
+        value: "http://localhost"
+    target:
+      kind: ConfigMap
+      namespace: smartwearables
+      name: app-configmap
+
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: "Never"
+    target:
+      kind: Deployment
+      namespace: smartwearables
+      labelSelector: app=smart-wearables,component!=keycloak
+
+  - patch: |-
+      - op: add
+        path: /spec/template/spec/volumes
+        value:
+          - name: kc-realm-import-vol
+            configMap:
+              name: swc-kc-dev-realm-configmap
+      - op: add
+        path: /spec/template/spec/containers/0/volumeMounts
+        value:
+          - mountPath: /opt/keycloak/data/import
+            name: kc-realm-import-vol
+    target:
+      kind: Deployment
+      namespace: smartwearables
+      labelSelector: app=smart-wearables,component=keycloak
