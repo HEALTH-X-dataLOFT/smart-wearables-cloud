@@ -25,12 +25,12 @@ Using the CI/CD-Pipeline a manifest file is created through which the various se
    kubectl apply -f https://github.com/nginxinc/nginx-gateway-fabric/releases/download/v1.1.0/nginx-gateway.yaml
    ```
 
-### Create gateway and service
+### Create gateway and service (using existing certificate)
 
 1. *Optional:* If an existing tls-certificate is available create the following two CI/CD Variables
    (If there is **no** certificate available see section "Automatic TLS configuration" below)
 
-   *TLS_CERT_BASE64* - the server's vertificate, must be base64-encoded in a single line
+   *TLS_CERT_BASE64* - the server's certificate, must be base64-encoded in a single line
 
    *TLS_PRIVKEY_BASE64* - the server's private key, must be base64-encoded in a single line 
 
@@ -58,14 +58,15 @@ Using the CI/CD-Pipeline a manifest file is created through which the various se
 
    ***Note that the gateway loadbalancer service should be kept running to prevent the associated IP address from being changed!***
 
-### Automatic TLS configuration
+### Automatic TLS configuration (without existing certificate)
 
 1. Ensure that the Gateway API CRDs are properly installed on the cluser 
     
    If they're not present during `cert-mananger` initialization, `cert-mananger` won't work properly and will require a restart.
 
+2. Adjust the value of the `hostname` field in `gateway.yaml` to match your individual app URL
 
-2. Install [cert-manager](https://cert-manager.io/docs/installation/kubectl/) CRDs and create a Let's Encrypt Issuer
+3. Install [cert-manager](https://cert-manager.io/docs/installation/kubectl/) CRDs and create a Let's Encrypt Issuer
    ```
    kubectl apply -k ./tls
    ```
@@ -99,6 +100,8 @@ _Append `--kubeconfig [KUBECONFIG_FILE]` to each command for remote clusters._
 
 ### Create gateway and service
 
+### Manual TLS configuration (using existing certificate)
+
 1. _(Optional)_ Create a Kubernetes secret holding the server's certificate and private key data (if existing certificate is available, otherwise see "Automatic TLS configuration"):
    ```
    kubectl create secret tls smartwearables-tls --cert=[PATH_TO_PEM_FILE] --key=[PATH_TO_KEYFILE] -n smartwearables
@@ -116,18 +119,20 @@ _Append `--kubeconfig [KUBECONFIG_FILE]` to each command for remote clusters._
 
    ***Note that the gateway loadbalancer service should be kept running to prevent the associated IP address from being changed!***
 
-### Automatic TLS configuration
+### Automatic TLS configuration (without existing certificate)
 
 1. Ensure that the Gateway API CRDs are properly installed on the cluster 
     
    If they're not present during `cert-mananger` initialization, `cert-mananger` won't work properly and will require a restart.
 
-2. Create a secret that stores the ACME account private key
+2. Adjust the value of the `hostname` field in `gateway.yaml` to match your individual app URL
+
+3. Create a secret that stores the ACME account private key
    ```
    kubectl create secret generic issuer-account-key --from-literal=tls.key= -n smartwearables
    ```
 
-3. Install [cert-manager](https://cert-manager.io/docs/installation/kubectl/) CRDs and create a Let's Encrypt Issuer
+4. Install [cert-manager](https://cert-manager.io/docs/installation/kubectl/) CRDs and create a Let's Encrypt Issuer
    ```
    kubectl apply -k ./tls
    ```
